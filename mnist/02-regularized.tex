@@ -1,4 +1,4 @@
-\item \subquestionpointscoding{5} Now add a regularization term to your cross entropy loss.
+\item \subquestionpointscoding{6} Now add a regularization term to your cross entropy loss.
 The loss function will become \begin{equation*}
   J_{MB} = \left(\frac{1}{B}\sum_{i=1}^{B}CE(y^{(i)}, \hat{y}^{(i)})\right) + \lambda \left(||W^{[1]}||^2 + ||W^{[2]}||^2 \right)
   \end{equation*}
@@ -9,16 +9,11 @@ figures as part (a). Be careful NOT to include the regularization term to measur
 the loss value for plotting (i.e., regularization should only be used for gradient calculation for
 the purpose of training).
 
-\textbf{Submit the two new plots obtained with regularized training (i.e loss (without regularization term) vs epoch, and accuracy vs epoch) in your writeup.}
-
-\textbf{Compare the plots obtained from the regularized model with the plots obtained
-from the non-regularized model, and summarize your observations in a couple of sentences.}
-
 As in the previous part, save the learnt parameters (weights and biases) into a
 different file so that we can initialize from them next time.
 
 \clearpage\newpage
-You plots should look similar to the following:
+If you recreate the plots frmo the previous part, they should look similar to the following:
 
 \begin{figure}[H]
     \centering

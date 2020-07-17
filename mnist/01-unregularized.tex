@@ -12,15 +12,11 @@ just create mini-batches sequentially.
 
 Train the model with mini-batch gradient descent
 as described above. Run the training for 30 epochs. At the end of each epoch, calculate
-the value of loss function averaged over the entire training set, and plot it
-(y-axis) against the number of epochs (x-axis). In the same image, plot the value
-of the loss function averaged over the dev set, and plot it against the number of epochs.
+the value of loss function averaged over the entire training set.  To verify a correct implementation, consider plotting the average loss (y-axis) against the number of epochs (x-axis). In the same image, plot the value of the loss function averaged over the dev set, and plot it against the number of epochs.
 
-Similarly, in a new image, plot the accuracy (on y-axis) over the training set,
+Similarly, consider plotting the accuracy (on y-axis) over the training set,
 measured as the fraction of correctly classified examples, versus the number of epochs
-(x-axis). In the same image, also plot the accuracy over the dev set versus number of epochs.
-
-\textbf{Submit the two plots (one for loss vs epoch, another for accuracy vs epoch) in your writeup.}
+(x-axis). In the same image, plot the accuracy over the dev set versus number of epochs.
 
 Also, at the end of 30 epochs, save the learnt parameters (i.e all the weights and biases)
 into a file, so that next time you can directly initialize the parameters with
