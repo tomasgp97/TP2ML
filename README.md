@@ -1,9 +1,8 @@
 # XCS229i PS 4 (40 points)
 
 ## Assignment Overview 
-**Description**: In this problem set, you will use the naive-Bayes algorithm and an SVM to build a spam classifier.  In the second problem, you will create a neural network to solve the classic data science problem of classifying the MNIST dataset.
+**Description**: In this problem set, you will use the naive-bayes algorithm and an SVM to build a spam classifier.  In the second problem, you will create a neural network to solve the classic data science problem of classifying the MNIST dataset.
 
-- Written [1 points]: 2c
 - Coding [39 points]: 1a, 1b, 1c, 1d, 2a, 2b, 2c
 
 ## Importing to Overleaf
