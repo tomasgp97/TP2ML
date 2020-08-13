@@ -160,6 +160,31 @@ def gradient_descent_epoch(train_data, train_labels, learning_rate, batch_size, 
     return
 
 def nn_train(
+    """
+    Train model using gradient descent for specified number of epochs.
+    
+    Evaluates cost and accuracy on training and dev set at the end of each epoch.
+
+    Args:
+        train_data: A numpy array containing the training data
+        train_labels: A numpy array containing the training labels
+        dev_data: A numpy array containing the dev data
+        dev_labels: A numpy array containing the dev labels
+        get_initial_params_func: A function to initialize model parameters
+        forward_prop_func: A function that follows the forward_prop API
+        backward_prop_func: A function that follows the backwards_prop API
+        num_hidden: Number of hidden layers
+        learning_rate: The learning rate
+        num_epochs: Number of epochs to train for
+        batch_size: The amount of items to process in each batch
+
+    Returns: 
+        params: A dict of parameter names to parameter values for the trained model
+        cost_train: An array of training costs at the end of each training epoch
+        cost_dev: An array of dev set costs at the end of each training epoch
+        accuracy_train: An array of training accuracies at the end of each training epoch
+        accuracy_dev: An array of dev set accuracies at the end of each training epoch
+    """
     train_data, train_labels, dev_data, dev_labels, 
     get_initial_params_func, forward_prop_func, backward_prop_func,
     num_hidden=300, learning_rate=5, num_epochs=30, batch_size=1000):
@@ -186,6 +211,7 @@ def nn_train(
     return params, cost_train, cost_dev, accuracy_train, accuracy_dev
 
 def nn_test(data, labels, params):
+    """Predict labels and compute accuracy for held-out test data"""
     h, output, cost = forward_prop(data, labels, params)
     accuracy = compute_accuracy(output, labels)
     return accuracy
@@ -196,16 +222,19 @@ def compute_accuracy(output, labels):
     return accuracy
 
 def one_hot_labels(labels):
+    """Convert labels from integers to one hot encoding"""
     one_hot_labels = np.zeros((labels.size, 10))
     one_hot_labels[np.arange(labels.size),labels.astype(int)] = 1
     return one_hot_labels
 
 def read_data(images_file, labels_file):
+    """Load images and labels"""
     x = np.loadtxt(images_file, delimiter=',')
     y = np.loadtxt(labels_file, delimiter=',')
     return x, y
 
 def run_train_test(name, all_data, all_labels, backward_prop_func, num_epochs, plot=True):
+    """Trains model, applies model to test data, and (optionally) plots loss"""
     params, cost_train, cost_dev, accuracy_train, accuracy_dev = nn_train(
         all_data['train'], all_labels['train'], 
         all_data['dev'], all_labels['dev'],
