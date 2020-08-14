@@ -1,5 +1,5 @@
 \item \subquestionpointscoding{5}
-In this question you are going to implement a naive Bayes classifier for spam
+In this question you are going to implement a Naive Bayes classifier for spam
 classification with {\bf multinomial event model} and Laplace smoothing.
 
 Code your implementation by completing the \texttt{fit\_naive\_bayes\_model}
@@ -10,9 +10,8 @@ Now \texttt{src/spam/spam.py} should be able to train a Naive Bayes model,
 compute your prediction accuracy and then save your resulting predictions
 to \texttt{spam\_naive\_bayes\_predictions}.
 
-In your writeup, report the accuracy of the trained model on the \textbf{test set}.
 
-{\bf Remark.} If you implement naive Bayes the straightforward way, you will find
+{\bf Remark.} If you implement Naive Bayes the straightforward way, you will find
 that the computed $p(x|y) = \prod_i p(x_i | y)$ often equals zero.  This is
 because $p(x|y)$, which is the product of many numbers less than one, is a very
 small  number. The standard computer representation of real numbers cannot
