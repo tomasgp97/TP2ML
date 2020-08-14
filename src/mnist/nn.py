@@ -160,6 +160,9 @@ def gradient_descent_epoch(train_data, train_labels, learning_rate, batch_size, 
     return
 
 def nn_train(
+    train_data, train_labels, dev_data, dev_labels, 
+    get_initial_params_func, forward_prop_func, backward_prop_func,
+    num_hidden=300, learning_rate=5, num_epochs=30, batch_size=1000):
     """
     Train model using gradient descent for specified number of epochs.
     
@@ -185,9 +188,6 @@ def nn_train(
         accuracy_train: An array of training accuracies at the end of each training epoch
         accuracy_dev: An array of dev set accuracies at the end of each training epoch
     """
-    train_data, train_labels, dev_data, dev_labels, 
-    get_initial_params_func, forward_prop_func, backward_prop_func,
-    num_hidden=300, learning_rate=5, num_epochs=30, batch_size=1000):
 
     (nexp, dim) = train_data.shape
 
