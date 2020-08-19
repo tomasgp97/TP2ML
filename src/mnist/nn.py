@@ -1,6 +1,7 @@
+import argparse
+import functools
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
 
 def softmax(x):
     """
@@ -311,7 +312,7 @@ def main(plot=True):
     
     baseline_acc = run_train_test('baseline', all_data, all_labels, backward_prop, args.num_epochs, plot)
     reg_acc = run_train_test('regularized', all_data, all_labels, 
-        lambda a, b, c, d: backward_prop_regularized(a, b, c, d, reg=0.0001),
+        functools.partial(backward_prop_regularized, reg=0.0001),
         args.num_epochs, plot)
         
     return baseline_acc, reg_acc
