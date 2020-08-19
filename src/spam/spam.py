@@ -10,9 +10,9 @@ def get_words(message):
     """Get the normalized list of words from a message string.
 
     This function should split a message into words, normalize them, and return
-    the resulting list. For splitting, you should split on whitespace. For normalization,
-    you should convert everything to lowercase.  Please do not consider the empty
-    string (" ") as a word.
+    the resulting list. For simplicity, you should split on whitespace, not
+    punctuation or any other character. For normalization, you should convert
+    everything to lowercase.  Please do not consider the empty string (" ") to be a word.
 
     Args:
         message: A string containing an SMS message
