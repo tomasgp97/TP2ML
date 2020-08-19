@@ -66,7 +66,7 @@ def load_spam_dataset(tsv_path):
     labels = []
 
     with open(tsv_path, 'r', newline='', encoding='utf8') as tsv_file:
-        reader = csv.reader(tsv_file, delimiter='\t')
+        reader = csv.reader(tsv_file, delimiter='\t', quoting=csv.QUOTE_NONE)
 
         for label, message in reader:
             messages.append(message)
