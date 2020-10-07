@@ -8,6 +8,7 @@ import util
 import svm
 
 
+
 def get_words(message):
     """Get the normalized list of words from a message string.
 
