@@ -257,17 +257,6 @@ def main():
 
     print('The SVM model had an accuracy of {} on the testing set'.format(svm_accuracy, optimal_radius))
 
-def test_main():
-    messages = ["This is a test, should be tagged, test", "I Have some ice cream", "I have a boat", "I need a boat I phone", "Test this test test test please", "I have an apple", "This I is yet another test being test ed"]
-    vocabulary = create_dictionary(messages)
-    print(vocabulary)
-
-    matrix = transform_text(messages, vocabulary)
-
-    labelProbability, frequencies, labelCounts = fit_naive_bayes_model(matrix, [1,0,0,0,1,0,1])
-    print(labelProbability)
-    print(frequencies)
-    print(labelCounts)
 if __name__ == "__main__":
     main()
     # test_main()
