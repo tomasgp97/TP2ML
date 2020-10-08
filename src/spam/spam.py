@@ -167,23 +167,23 @@ def predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, m
     freq1 = sum(frequencies[1])
 
     for k, row in enumerate(matrix):
-        isNotSpamLikelyhood = labelProbability[0]
-        isSpamLikelyhood = labelProbability[1]
+        isNotSpamLikelyhood = log(labelProbability[0])
+        isSpamLikelyhood = log(labelProbability[1])
 
         # Probability is not spam
         for i, feature in enumerate(row):
             # P(C|Xi) = P(Xi|C) * P(C)
             probability = frequencies[0][i] / freq0  # frecuencia / cantidad de labels
             if (feature > 0):
-                isSpamLikelyhood *= probability
+                isSpamLikelyhood *= log(1 + probability)
 
         # Probability is spam
         for i, feature in enumerate(row):
             probability = frequencies[1][i] / freq1  # frecuencia / cantidad de labels
             if (feature > 0):
-                isNotSpamLikelyhood *= probability
+                isNotSpamLikelyhood *= log(1 + probability)
 
-        if (isSpamLikelyhood < isNotSpamLikelyhood):
+        if (isSpamLikelyhood > isNotSpamLikelyhood):
             predictions[k] = 1
         else:
             predictions[k] = 0
@@ -256,6 +256,7 @@ def main():
     val_messages, val_labels = util.load_spam_dataset('spam_val.tsv')
     test_messages, test_labels = util.load_spam_dataset('spam_test.tsv')
     preprocess = True
+
     dictionary = create_dictionary(train_messages, preprocess)
 
     print('Size of dictionary: ', len(dictionary))
@@ -285,38 +286,18 @@ def main():
 
     util.write_json('spam_top_indicative_words', top_5_words)
 
-    # optimal_radius = compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, [0.01, 0.1, 1, 10])
+    optimal_radius = compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, [0.01, 0.1, 1, 10])
 
-    # util.write_json('spam_optimal_radius', optimal_radius)
-    #
-    # print('The optimal SVM radius was {}'.format(optimal_radius))
+    util.write_json('spam_optimal_radius', optimal_radius)
 
-    # svm_predictions = svm.train_and_predict_svm(train_matrix, train_labels, test_matrix, optimal_radius)
+    print('The optimal SVM radius was {}'.format(optimal_radius))
 
-    # svm_accuracy = np.mean(svm_predictions == test_labels)
+    svm_predictions = svm.train_and_predict_svm(train_matrix, train_labels, test_matrix, optimal_radius)
 
-    # print('The SVM model had an accuracy of {} on the testing set'.format(svm_accuracy, optimal_radius))
+    svm_accuracy = np.mean(svm_predictions == test_labels)
 
+    print('The SVM model had an accuracy of {} on the testing set'.format(svm_accuracy, optimal_radius))
 
-# def test_main():
-#     train_messages = ["Hola", "hola", "hola hola", "hola", "hello", "hola",
-#                       "Chau", "chau", "chau chau", "hola pero chau", "chau", "goodbye", "chau"]
-#
-#     train_labels = [1,1,1,1,1,1,0,0,0,0,0,0,0]
-#     # freq: [[1,6],[5,0]]
-#     test_messages = ["Hola", "Chau", "Aloha", "Adios", "Hello hola", "hola y chau"]
-#
-#     dictionary = create_dictionary(train_messages)
-#
-#     print('Size of dictionary: ', len(dictionary))
-#
-#     train_matrix = transform_text(train_messages, dictionary)
-#     test_matrix = transform_text(test_messages, dictionary)
-#     labelProbability, frequencies, labelCounts = fit_naive_bayes_model(train_matrix, train_labels)
-#
-#     naive_bayes_predictions = predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, dictionary, test_matrix)
-#
-#     print(naive_bayes_predictions)
 if __name__ == "__main__":
     main()
     # test_main()
