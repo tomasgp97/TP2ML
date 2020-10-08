@@ -45,15 +45,16 @@ def create_dictionary(messages):
         words = get_words(message)
         for word in words:
             if word in basicDict:
-             basicDict[word] = basicDict[word] + 1
+                basicDict[word] = basicDict[word] + 1
             else:
                 basicDict[word] = 1
 
     filteredDict = dict()
     for (key, value) in basicDict.items():
-        if(value > 5):
+        if (value > 5):
             filteredDict[key] = value
     return filteredDict
+
 
 def transform_text(messages, word_dictionary):
     """Transform a list of text messages into a numpy array for further processing.
@@ -78,13 +79,13 @@ def transform_text(messages, word_dictionary):
     rows = len(messages)
     cols = len(word_dictionary)
     matrix = np.zeros((rows, cols))
-    vocabulary=  list(word_dictionary.keys())
+    vocabulary = list(word_dictionary.keys())
 
     for i, message in enumerate(messages):
         words = get_words(message)
         for word in words:
             index = vocabulary.index(word) if word in vocabulary else -1
-            if(index is not -1):
+            if (index is not -1):
                 matrix[i][index] = matrix[i][index] + 1
 
     return matrix
@@ -105,22 +106,23 @@ def fit_naive_bayes_model(matrix, labels):
 
     Returns: The trained model
     """
-    frequencies = np.zeros((2,len(matrix))) # Frecuencia de cada pablabra en cada label
-    labelCounts = np.zeros(2) # Cantidad de cada label
-    labelProbability = np.zeros(2) # probabilidad apriori de cada label
+    frequencies = np.zeros((2, len(matrix)))  # Frecuencia de cada pablabra en cada label
+    labelCounts = np.zeros(2)  # Cantidad de cada label
+    labelProbability = np.zeros(2)  # probabilidad apriori de cada label
 
     for i, row in enumerate(matrix):
         label = labels[i]
         labelCounts[label] += 1
         for j, count in enumerate(row):
-            if(count > 0):
+            if (count > 0):
                 frequencies[label][j] = frequencies[label][j] + 1
     size = len(labels)
 
-    labelProbability[0] = labelCounts[0] / size # Probabilidad a priori de no ser spam
-    labelProbability[1] = labelCounts[1] /size # Probabilidad a priori de ser spam
+    labelProbability[0] = labelCounts[0] / size  # Probabilidad a priori de no ser spam
+    labelProbability[1] = labelCounts[1] / size  # Probabilidad a priori de ser spam
     print(frequencies)
     return labelProbability, frequencies, labelCounts
+
 
 def predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, matrix):
     """Use a Naive Bayes model to compute predictions for a target matrix.
@@ -142,17 +144,16 @@ def predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, m
         # Probability is not spam
         for i, feature in enumerate(row):
             # P(C|Xi) = P(Xi|C) * P(C)
-            probability = frequencies[0][i] / labelCounts[0] # frecuencia / cantidad de labels
-            if(probability > 0):
+            probability = frequencies[0][i] / labelCounts[0]  # frecuencia / cantidad de labels
+            if (probability > 0):
                 isSpamLikelyhood *= log(probability)
-
-        #Probability is spam
+        # Probability is spam
         for i, feature in enumerate(row):
-            probability = frequencies[1][i] / labelCounts[1] # frecuencia / cantidad de labels
+            probability = frequencies[1][i] / labelCounts[1]  # frecuencia / cantidad de labels
             if (probability > 0):
                 isNotSpamLikelyhood *= log(probability)
 
-        if(isSpamLikelyhood > isNotSpamLikelyhood):
+        if (isSpamLikelyhood > isNotSpamLikelyhood):
             predictions[k] = 1
         else:
             predictions[k] = 0
@@ -189,7 +190,6 @@ def get_top_five_naive_bayes_words(labelCounts, frequencies, dictionary):
     sort = sorted(words, key=lambda tup: tup[1])
     reversed = [i[0] for i in sort]
     return reversed[:5]
-   
 
 
 def compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, radius_to_consider):
@@ -208,7 +208,18 @@ def compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, 
     Returns:
         The best radius which maximizes SVM accuracy.
     """
-    return 
+    best_accuracy = -1
+    best_radius = 0
+
+    for radius in radius_to_consider:
+        predictions = svm.train_and_predict_svm(train_matrix, train_labels, val_matrix, radius)
+        accuracy = np.mean(predictions == val_labels)
+
+        if accuracy > best_accuracy:
+            best_accuracy = accuracy
+            best_radius = radius
+
+    return best_radius
 
 
 def main():
@@ -224,7 +235,7 @@ def main():
 
     train_matrix = transform_text(train_messages, dictionary)
 
-    np.savetxt('spam_sample_train_matrix', train_matrix[:100,:])
+    np.savetxt('spam_sample_train_matrix', train_matrix[:100, :])
 
     val_matrix = transform_text(val_messages, dictionary)
     test_matrix = transform_text(test_messages, dictionary)
@@ -256,6 +267,7 @@ def main():
     svm_accuracy = np.mean(svm_predictions == test_labels)
 
     print('The SVM model had an accuracy of {} on the testing set'.format(svm_accuracy, optimal_radius))
+
 
 if __name__ == "__main__":
     main()
