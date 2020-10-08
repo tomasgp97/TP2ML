@@ -4,11 +4,12 @@ from collections import defaultdict
 
 import numpy as np
 from math import log
+import re, string
 
 from src.spam import util, svm
 
 
-def get_words(message):
+def get_words(message, shouldPreprocess = False):
     """Get the normalized list of words from a message string.
 
     This function should split a message into words, normalize them, and return
@@ -22,10 +23,29 @@ def get_words(message):
     Returns:
        The list of normalized words from the message.
     """
+    if(shouldPreprocess == True):
+        return preprocess(message.lower().strip().split())
     return message.lower().strip().split()
 
+def preprocess(message):
+    """
+    Preprocess each word in message
+    :param message: list of words in a message
+    :return: preprocessed message
+    """
 
-def create_dictionary(messages):
+    punctTable = str.maketrans({key: "" for key in ".,/()!@$%^&*[]{}"})
+    digitsTable = str.maketrans({key: "#D" for key in string.digits})
+    for i, word in enumerate(message):
+        word = re.sub("(USD|EUR|€|\$|£)\s?(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2}))|(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?)\s?(USD|EUR|€|\$|£)", "#price", word)
+        word = re.sub("(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))", "#URL", word)
+        word = re.sub("^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}", "#email", word)
+        word = word.translate(punctTable)
+        word = word.translate(digitsTable)
+        message[i] = word
+    return message
+
+def create_dictionary(messages, preprocess = False):
     """Create a dictionary mapping words to integer indices.
 
     This function should create a dictionary of word to indices using the provided
@@ -42,7 +62,7 @@ def create_dictionary(messages):
     """
     basicDict = dict()
     for message in messages:
-        words = get_words(message)
+        words = get_words(message, preprocess)
         for word in words:
             if word in basicDict:
                 basicDict[word] = basicDict[word] + 1
@@ -56,7 +76,7 @@ def create_dictionary(messages):
     return filteredDict
 
 
-def transform_text(messages, word_dictionary):
+def transform_text(messages, word_dictionary, preprocess = False):
     """Transform a list of text messages into a numpy array for further processing.
 
     This function should create a numpy array that contains the number of times each word
@@ -82,7 +102,7 @@ def transform_text(messages, word_dictionary):
     vocabulary = list(word_dictionary.keys())
 
     for i, message in enumerate(messages):
-        words = get_words(message)
+        words = get_words(message, preprocess)
         for word in words:
             index = vocabulary.index(word) if word in vocabulary else -1
             if index >= 0:
@@ -126,7 +146,7 @@ def fit_naive_bayes_model(matrix, labels):
     return labelProbability, frequencies, labelCounts
 
 
-def predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, word_dictionary, matrix):
+def predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, matrix):
     """Use a Naive Bayes model to compute predictions for a target matrix.
 
     This function should be able to predict on the models that fit_naive_bayes_model
@@ -171,7 +191,7 @@ def predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, w
     return predictions
 
 
-def get_top_five_naive_bayes_words(labelCounts, frequencies, dictionary):
+def get_top_five_naive_bayes_words(labelProb, frequencies, dictionary):
     """Compute the top five words that are most indicative of the spam (i.e positive) class.
 
     Ues the metric given in part-c as a measure of how indicative a word is.
@@ -183,19 +203,18 @@ def get_top_five_naive_bayes_words(labelCounts, frequencies, dictionary):
 
     Returns: A list of the top five most indicative words in sorted order with the most indicative first
     """
-    words = [None] * len(dictionary.keys())
-    for i, word in enumerate(dictionary.keys()):
-        p_x_dado_spam = (frequencies[1][i] / labelCounts[1])
-        p_x_dado_no_spam = (frequencies[0][i] / labelCounts[0])
-        if p_x_dado_spam != 0:
-            pre_log_indicative = p_x_dado_no_spam / p_x_dado_spam
-        else:
-            pre_log_indicative = 1
+    words = [(None, None)] * len(dictionary.keys())
+    # freq0 = sum(frequencies[0])
+    # freq1 = sum(frequencies[1])
 
-        if pre_log_indicative > 0:
-            indicative = log(pre_log_indicative)
-        else:
+    for i, word in enumerate(dictionary.keys()):
+        # P(Xi | C) = P(Xi y C) / P(C)
+        p_token_dado_spam = frequencies[0][i] / labelProb[0]
+        p_token_dado_no_spam = frequencies[1][i] / labelProb[1]
+        if(p_token_dado_spam == 0 or p_token_dado_no_spam == 0):
             indicative = 0
+        else:
+            indicative = log(p_token_dado_spam / p_token_dado_no_spam)
         words[i] = (word, indicative)
     sort = sorted(words, key=lambda tup: tup[1])
     reversed = [i[0] for i in sort]
@@ -236,23 +255,23 @@ def main():
     train_messages, train_labels = util.load_spam_dataset('spam_train.tsv')
     val_messages, val_labels = util.load_spam_dataset('spam_val.tsv')
     test_messages, test_labels = util.load_spam_dataset('spam_test.tsv')
-
-    dictionary = create_dictionary(train_messages)
+    preprocess = True
+    dictionary = create_dictionary(train_messages, preprocess)
 
     print('Size of dictionary: ', len(dictionary))
 
     util.write_json('spam_dictionary', dictionary)
 
-    train_matrix = transform_text(train_messages, dictionary)
+    train_matrix = transform_text(train_messages, dictionary, preprocess)
 
     np.savetxt('spam_sample_train_matrix', train_matrix[:100, :])
 
-    val_matrix = transform_text(val_messages, dictionary)
-    test_matrix = transform_text(test_messages, dictionary)
+    val_matrix = transform_text(val_messages, dictionary, preprocess)
+    test_matrix = transform_text(test_messages, dictionary, preprocess)
 
     labelProbability, frequencies, labelCounts = fit_naive_bayes_model(train_matrix, train_labels)
 
-    naive_bayes_predictions = predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, dictionary, test_matrix)
+    naive_bayes_predictions = predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, test_matrix)
 
     np.savetxt('spam_naive_bayes_predictions', naive_bayes_predictions)
 
@@ -260,23 +279,23 @@ def main():
 
     print('Naive Bayes had an accuracy of {} on the testing set'.format(naive_bayes_accuracy))
 
-    top_5_words = get_top_five_naive_bayes_words(labelCounts, frequencies, dictionary)
+    top_5_words = get_top_five_naive_bayes_words(labelProbability, frequencies, dictionary)
 
     print('The top 5 indicative words for Naive Bayes are: ', top_5_words)
 
     util.write_json('spam_top_indicative_words', top_5_words)
 
-    optimal_radius = compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, [0.01, 0.1, 1, 10])
+    # optimal_radius = compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, [0.01, 0.1, 1, 10])
 
-    util.write_json('spam_optimal_radius', optimal_radius)
+    # util.write_json('spam_optimal_radius', optimal_radius)
+    #
+    # print('The optimal SVM radius was {}'.format(optimal_radius))
 
-    print('The optimal SVM radius was {}'.format(optimal_radius))
+    # svm_predictions = svm.train_and_predict_svm(train_matrix, train_labels, test_matrix, optimal_radius)
 
-    svm_predictions = svm.train_and_predict_svm(train_matrix, train_labels, test_matrix, optimal_radius)
+    # svm_accuracy = np.mean(svm_predictions == test_labels)
 
-    svm_accuracy = np.mean(svm_predictions == test_labels)
-
-    print('The SVM model had an accuracy of {} on the testing set'.format(svm_accuracy, optimal_radius))
+    # print('The SVM model had an accuracy of {} on the testing set'.format(svm_accuracy, optimal_radius))
 
 
 # def test_main():
