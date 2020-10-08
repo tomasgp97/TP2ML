@@ -113,7 +113,8 @@ def fit_naive_bayes_model(matrix, labels):
         label = labels[i]
         labelCounts[label] += 1
         for j, count in enumerate(row):
-            frequencies[label][j] += 1
+            if(count > 0):
+                frequencies[label][j] = frequencies[label][j] + 1
     size = len(labels)
 
     labelProbability[0] = labelCounts[0] / size # Probabilidad a priori de no ser spam
@@ -144,6 +145,7 @@ def predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, m
             probability = frequencies[0][i] / labelCounts[0] # frecuencia / cantidad de labels
             if(probability > 0):
                 isSpamLikelyhood *= log(probability)
+
         #Probability is spam
         for i, feature in enumerate(row):
             probability = frequencies[1][i] / labelCounts[1] # frecuencia / cantidad de labels
@@ -158,7 +160,7 @@ def predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, m
     return predictions
 
 
-def get_top_five_naive_bayes_words(labelProbability, frequencies, dictionary):
+def get_top_five_naive_bayes_words(labelCounts, frequencies, dictionary):
     """Compute the top five words that are most indicative of the spam (i.e positive) class.
 
     Ues the metric given in part-c as a measure of how indicative a word is.
@@ -170,7 +172,23 @@ def get_top_five_naive_bayes_words(labelProbability, frequencies, dictionary):
 
     Returns: A list of the top five most indicative words in sorted order with the most indicative first
     """
-    return
+    words = [None] * len(dictionary.keys())
+    for i, word in enumerate(dictionary.keys()):
+        p_x_dado_spam = (frequencies[1][i] / labelCounts[1])
+        p_x_dado_no_spam = (frequencies[0][i] / labelCounts[0])
+        if p_x_dado_spam != 0:
+            pre_log_indicative = p_x_dado_no_spam / p_x_dado_spam
+        else:
+            pre_log_indicative = 1
+
+        if pre_log_indicative > 0:
+            indicative = log(pre_log_indicative)
+        else:
+            indicative = 0
+        words[i] = (word, indicative)
+    sort = sorted(words, key=lambda tup: tup[1])
+    reversed = [i[0] for i in sort]
+    return reversed[:5]
    
 
 
@@ -221,7 +239,7 @@ def main():
 
     print('Naive Bayes had an accuracy of {} on the testing set'.format(naive_bayes_accuracy))
 
-    top_5_words = get_top_five_naive_bayes_words(labelProbability, frequencies, dictionary)
+    top_5_words = get_top_five_naive_bayes_words(labelCounts, frequencies, dictionary)
 
     print('The top 5 indicative words for Naive Bayes are: ', top_5_words)
 
