@@ -106,22 +106,22 @@ def fit_naive_bayes_model(matrix, labels):
     Returns: The trained model
     """
     frequencies = np.zeros((2,len(matrix))) # Frecuencia de cada pablabra en cada label
-    labelCounter = np.zeros(2) # Cantidad de cada label
+    labelCounts = np.zeros(2) # Cantidad de cada label
     labelProbability = np.zeros(2) # probabilidad apriori de cada label
 
     for i, row in enumerate(matrix):
         label = labels[i]
-        labelCounter[label] += 1
+        labelCounts[label] += 1
         for j, count in enumerate(row):
-            frequencies[label][j] += count
+            frequencies[label][j] += 1
     size = len(labels)
 
-    labelProbability[0] = log(labelCounter[0] / size) # Probabilidad a priori de no ser spam
-    labelProbability[1] = log(labelCounter[1] /size) # Probabilidad a priori de ser spam
+    labelProbability[0] = labelCounts[0] / size # Probabilidad a priori de no ser spam
+    labelProbability[1] = labelCounts[1] /size # Probabilidad a priori de ser spam
     print(frequencies)
-    return labelProbability, frequencies
+    return labelProbability, frequencies, labelCounts
 
-def predict_from_naive_bayes_model(labelProbability, frequencies, matrix):
+def predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, matrix):
     """Use a Naive Bayes model to compute predictions for a target matrix.
 
     This function should be able to predict on the models that fit_naive_bayes_model
@@ -135,18 +135,22 @@ def predict_from_naive_bayes_model(labelProbability, frequencies, matrix):
     """
     predictions = np.zeros(len(matrix))
     for k, row in enumerate(matrix):
-        likelyHood = labelProbability
+        isSpamLikelyhood = log(labelProbability[1])
+        isNotSpamLikelyhood = log(labelProbability[0])
 
         # Probability is not spam
         for i, feature in enumerate(row):
-            probability = frequencies[0][i] / 2 # frecuencia / cantidad de labels
-            likelyHood[0] += log(probability)
+            # P(C|Xi) = P(Xi|C) * P(C)
+            probability = frequencies[0][i] / labelCounts[0] # frecuencia / cantidad de labels
+            if(probability > 0):
+                isSpamLikelyhood *= log(probability)
         #Probability is spam
         for i, feature in enumerate(row):
-            probability = frequencies[1][i] / 2 # frecuencia / cantidad de labels
-            likelyHood[1] += log(probability)
+            probability = frequencies[1][i] / labelCounts[1] # frecuencia / cantidad de labels
+            if (probability > 0):
+                isNotSpamLikelyhood *= log(probability)
 
-        if(likelyHood[1] > likelyHood[0]):
+        if(isSpamLikelyhood > isNotSpamLikelyhood):
             predictions[k] = 1
         else:
             predictions[k] = 0
@@ -207,9 +211,9 @@ def main():
     val_matrix = transform_text(val_messages, dictionary)
     test_matrix = transform_text(test_messages, dictionary)
 
-    labelProbability, frequencies = fit_naive_bayes_model(train_matrix, train_labels)
+    labelProbability, frequencies, labelCounts = fit_naive_bayes_model(train_matrix, train_labels)
 
-    naive_bayes_predictions = predict_from_naive_bayes_model(labelProbability, frequencies, test_matrix)
+    naive_bayes_predictions = predict_from_naive_bayes_model(labelProbability, frequencies, labelCounts, test_matrix)
 
     np.savetxt('spam_naive_bayes_predictions', naive_bayes_predictions)
 
@@ -236,15 +240,16 @@ def main():
     print('The SVM model had an accuracy of {} on the testing set'.format(svm_accuracy, optimal_radius))
 
 def test_main():
-    print(get_words("This is a test"))
-    messages = ["test test test test test is test fail test", "fucking test this is is is is is is is is is a test", "asd asd"]
+    messages = ["This is a test, should be tagged, test", "I Have some ice cream", "I have a boat", "I need a boat I phone", "Test this test test test please", "I have an apple", "This I is yet another test being test ed"]
     vocabulary = create_dictionary(messages)
     print(vocabulary)
 
     matrix = transform_text(messages, vocabulary)
 
-    fit_naive_bayes_model(matrix, [0, 1, 0])
-
+    labelProbability, frequencies, labelCounts = fit_naive_bayes_model(matrix, [1,0,0,0,1,0,1])
+    print(labelProbability)
+    print(frequencies)
+    print(labelCounts)
 if __name__ == "__main__":
     main()
     # test_main()
